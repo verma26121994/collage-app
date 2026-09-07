@@ -1,0 +1,1 @@
+const C='lesson-hub-v13';const A=['./','./index.html','./styles.css','./manifest.json','./Lesson_1_Nature_and_Concept_of_Environment.pdf'];self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(A))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
