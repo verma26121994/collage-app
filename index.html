@@ -1,1 +1,65 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#17324d"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css"><title>College Lesson Hub</title></head><body><header><b>College Lesson Hub</b><span>LL.B. Semester-I • Environmental Laws of India</span></header><main><section class="hero"><small>PAPER-V</small><h1>Environmental Laws of India</h1><p>Student lesson plans based on the syllabus.</p></section><h2>Lesson 1</h2><div class="card"><h3>Nature and Concept of Environment</h3><p>Interactive classroom lesson plan.</p><a href="Lesson_1_Nature_and_Concept_of_Environment.pdf" target="_blank">📄 Open Lesson PDF</a></div><div class="note"><b>Coming next:</b> Constitutional Perspective of Environmental Protection.</div></main><script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#17324d"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css">
+<title>College Lesson Hub</title>
+</head>
+<body>
+<header><b>College Lesson Hub</b><span>LL.B. Semester-I • Environmental Laws of India</span></header>
+<main>
+<section class="hero"><small>PAPER-V</small><h1>Environmental Laws of India</h1><p>Student lesson plans based on the syllabus.</p></section>
+<div id="status" class="note">Loading published lessons…</div>
+<section id="lessons"></section>
+<div id="empty" class="note" hidden>No published lessons are available yet.</div>
+</main>
+<script>
+const CONFIG_URL='content-config.json';
+const FALLBACK=[{Subject:'Environmental Laws',Unit:'Unit 1',Lecture:'Nature and Concept of Environment',Description:'Interactive classroom lesson plan.',PDF:'Lesson_1_Nature_and_Concept_of_Environment.pdf',Status:'Published'}];
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', quoted=false;
+  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];
+    if(quoted){if(c==='"'&&n==='"'){cell+='"';i++;} else if(c==='"'){quoted=false;} else cell+=c;}
+    else if(c==='"') quoted=true;
+    else if(c===','){row.push(cell.trim());cell='';}
+    else if(c==='\n'){row.push(cell.trim());rows.push(row);row=[];cell='';}
+    else if(c!=='\r') cell+=c;
+  }
+  if(cell.length||row.length){row.push(cell.trim());rows.push(row);}
+  if(!rows.length)return[]; const headers=rows.shift().map(h=>h.replace(/^\uFEFF/,''));
+  return rows.filter(r=>r.some(Boolean)).map(r=>Object.fromEntries(headers.map((h,j)=>[h,r[j]??''])));
+}
+function clean(v){return String(v??'').trim()}
+function get(row,...names){for(const n of names){if(clean(row[n]))return clean(row[n]);}return ''}
+function render(data){
+  const published=data.filter(r=>clean(get(r,'Status','status')).toLowerCase()==='published');
+  const root=document.getElementById('lessons'); root.innerHTML='';
+  if(!published.length){document.getElementById('empty').hidden=false;return;}
+  const groups={};
+  published.forEach(r=>{const unit=get(r,'Unit','unit')||'Lessons';(groups[unit]??=[]).push(r);});
+  Object.entries(groups).forEach(([unit,items])=>{
+    const h=document.createElement('h2');h.textContent=unit;root.appendChild(h);
+    items.forEach((r,i)=>{
+      const title=get(r,'Lecture','Lesson','Title','Lecture Title')||`Lecture ${i+1}`;
+      const desc=get(r,'Description','description')||'Published lesson plan.';
+      const pdf=get(r,'PDF Link','PDF','Pdf Link','pdf_link');
+      const card=document.createElement('div');card.className='card';
+      card.innerHTML=`<h3>${escapeHtml(title)}</h3><p>${escapeHtml(desc)}</p>`;
+      if(pdf){const a=document.createElement('a');a.href=pdf;a.target='_blank';a.rel='noopener';a.textContent='📄 Open Lesson PDF';card.appendChild(a);}
+      else if(title.toLowerCase().includes('nature and concept')){const a=document.createElement('a');a.href='Lesson_1_Nature_and_Concept_of_Environment.pdf';a.target='_blank';a.textContent='📄 Open Lesson PDF';card.appendChild(a);}
+      else {const p=document.createElement('p');p.className='muted';p.textContent='PDF link will be added by the teacher.';card.appendChild(p);}
+      root.appendChild(card);
+    });
+  });
+}
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+async function load(){
+ try{const cfg=await fetch(CONFIG_URL,{cache:'no-store'}).then(r=>r.json());
+   const csv=await fetch(cfg.contentSource,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Sheet unavailable');return r.text();});
+   const data=parseCSV(csv); render(data); document.getElementById('status').textContent='Live lessons from Google Sheets • Updated automatically when you publish.';
+ }catch(e){render(FALLBACK);document.getElementById('status').textContent='Showing saved lessons. Live Google Sheet could not be reached right now.';}
+}
+load();
+</script>
+<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');</script>
+</body></html>

@@ -1,1 +1,4 @@
-const C='lesson-hub-v13';const A=['./','./index.html','./styles.css','./manifest.json','./Lesson_1_Nature_and_Concept_of_Environment.pdf'];self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(A))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+const CACHE='college-lesson-hub-v2-1';
+self.addEventListener('install',e=>self.skipWaiting());
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return; if(e.request.url.includes('docs.google.com'))return; e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});
