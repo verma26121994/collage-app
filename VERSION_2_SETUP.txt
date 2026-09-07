@@ -1,0 +1,16 @@
+# College Lesson Hub – Version 2
+
+This version is prepared to read the published Google Sheets CSV supplied by the teacher.
+
+Content source:
+- Google Sheets published CSV
+- Status must be `Published` for a lesson to appear
+- PDF Link should contain the accessible PDF URL
+
+Student app:
+- Install once
+- Reopen the same app to see published content
+- No APK/reinstall is required for new lessons
+
+Note:
+This package prepares the content-source configuration. The existing student UI remains intact.
