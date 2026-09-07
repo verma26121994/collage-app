@@ -15,6 +15,7 @@
 </main>
 <script>
 const CONFIG_URL='content-config.json';
+  const APP_VERSION='v2.2';
 const FALLBACK=[{Subject:'Environmental Laws',Unit:'Unit 1',Lecture:'Nature and Concept of Environment',Description:'Interactive classroom lesson plan.',PDF:'Lesson_1_Nature_and_Concept_of_Environment.pdf',Status:'Published'}];
 function parseCSV(text){
   const rows=[]; let row=[], cell='', quoted=false;
@@ -54,12 +55,45 @@ function render(data){
 }
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 async function load(){
- try{const cfg=await fetch(CONFIG_URL,{cache:'no-store'}).then(r=>r.json());
-   const csv=await fetch(cfg.contentSource,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Sheet unavailable');return r.text();});
-   const data=parseCSV(csv); render(data); document.getElementById('status').textContent='Live lessons from Google Sheets • Updated automatically when you publish.';
- }catch(e){render(FALLBACK);document.getElementById('status').textContent='Showing saved lessons. Live Google Sheet could not be reached right now.';}
-}
-load();
+  try {
+    const cfg = await fetch(
+      CONFIG_URL + '?v=' + APP_VERSION,
+      {cache:'no-store'}
+    ).then(r => r.json());
+
+    const csv = await fetch(
+      cfg.contentSource + '&v=' + Date.now(),
+      {cache:'no-store'}
+    ).then(r => {
+      if(!r.ok) throw new Error('Sheet unavailable');
+      return r.text();
+    });
+
+    const data = parseCSV(csv);
+
+    console.log('All Sheet rows:', data);
+    console.log(
+      'Published rows:',
+      data.filter(r =>
+        clean(get(r,'Status','status')).toLowerCase() === 'published'
+      )
+    );
+
+    render(data);
+
+    document.getElementById('status').textContent =
+      'Live lessons from Google Sheets • Updated automatically when you publish.';
+
+  } catch(e) {
+
+    console.error(e);
+
+    render(FALLBACK);
+
+    document.getElementById('status').textContent =
+      'Showing saved lessons. Live Google Sheet could not be reached right now.';
+  }
+}load();
 </script>
 <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');</script>
 </body></html>
